@@ -97,15 +97,14 @@ export function useRiderNotifications(riderId) {
                     Order Ready for Pickup!
                   </p>
                   <p className="text-sm text-gray-600">
-                    Order #{updatedOrder._id?.slice(-6)} at{" "}
-                    {updatedOrder.university}
+                    Order #{updatedOrder._id?.slice(-6)}
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => {
                   toast.dismiss(t.id);
-                  window.location.href = "/orders";
+                  window.location.href = "/order";
                 }}
                 className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium"
               >

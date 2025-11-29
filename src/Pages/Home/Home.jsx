@@ -529,7 +529,7 @@ const Home = () => {
                 Order Details
               </h2>
               <p className="text-sm text-gray-500">
-                Order #{selectedItem._id.slice(0, 10)}
+                Order #{selectedItem._id.slice(0, 8)}
               </p>
             </div>
 

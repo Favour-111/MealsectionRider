@@ -153,7 +153,7 @@ const Orders = () => {
         (item) =>
           item.currentStatus === "Pending" &&
           item.rider === "Not assigned" &&
-          item.packs.every((pack) => pack.accepted !== null)
+          item.packs.some((pack) => pack.accepted === null)
       ).length,
     [baseOrders]
   );
@@ -183,7 +183,7 @@ const Orders = () => {
         }/api/users/orders/${orderId}/assign-rider`,
         { rider: riderName }
       );
-      setAssignedOrderId(orderId.slice(0, 7));
+      setAssignedOrderId(orderId.slice(0, 8));
       setShowSuccessModal(true);
       await fetchOrders();
     } catch (err) {
@@ -417,7 +417,7 @@ const Orders = () => {
                         >
                           <td className="px-6 py-4">
                             <span className="font-mono text-xs font-semibold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg">
-                              #{item._id.slice(0, 7)}
+                              #{item._id.slice(0, 8)}
                             </span>
                           </td>
                           <td className="px-6 py-4">
@@ -622,7 +622,7 @@ const Orders = () => {
                         >
                           <td className="px-6 py-4">
                             <span className="font-mono text-xs font-semibold text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg">
-                              #{item._id.slice(0, 7)}
+                              #{item._id.slice(0, 8)}
                             </span>
                           </td>
                           <td className="px-6 py-4">
@@ -843,7 +843,7 @@ const Orders = () => {
                         >
                           <td className="px-6 py-4">
                             <span className="font-mono text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg">
-                              #{item._id.slice(0, 7)}
+                              #{item._id.slice(0, 8)}
                             </span>
                           </td>
                           <td className="px-6 py-4">
@@ -980,6 +980,28 @@ const Orders = () => {
                   <p className="text-sm text-gray-500">
                     Order #{selectedItem._id.slice(0, 10)}
                   </p>
+                  {selectedItem?.deliveryNote && (
+                    <div className="mt-3 p-3 rounded-lg bg-blue-50 border border-blue-200">
+                      <span className="block text-xs font-semibold text-blue-700 mb-1">
+                        Rider Note:
+                      </span>
+                      <span className="text-sm text-blue-900">
+                        {selectedItem.deliveryNote}
+                      </span>
+                    </div>
+                  )}
+                  {/* Fallback for generic note field if riderNote is not present */}
+                  {!selectedItem?.deliveryNote &&
+                    selectedItem?.deliveryNote && (
+                      <div className="mt-3 p-3 rounded-lg bg-blue-50 border border-blue-200">
+                        <span className="block text-xs font-semibold text-blue-700 mb-1">
+                          Note:
+                        </span>
+                        <span className="text-sm text-blue-900">
+                          {selectedItem.deliveryNote}
+                        </span>
+                      </div>
+                    )}
                 </div>
 
                 <div className="space-y-4">
@@ -1033,9 +1055,31 @@ const Orders = () => {
                   ))}
                 </div>
 
+                {/* Accept Order button, only show if order is eligible */}
+                {selectedItem?.rider === "Not assigned" &&
+                  selectedItem?.packs?.every(
+                    (pack) => pack.accepted !== false
+                  ) &&
+                  selectedItem?.packs?.some(
+                    (pack) => pack.accepted === null
+                  ) && (
+                    <button
+                      onClick={() => {
+                        // Accept order logic
+                        assignRider(selectedItem._id, findRider?._id);
+                        setSelectedItem(null);
+                      }}
+                      className="mt-6 w-full px-4 py-3 rounded-xl bg-gradient-to-r from-green-600 to-green-800 text-white font-medium hover:from-green-700 hover:to-green-900 transition-all text-[14px] shadow-lg mb-2"
+                      disabled={acceptingOrder === selectedItem._id}
+                    >
+                      {acceptingOrder === selectedItem._id
+                        ? "Accepting..."
+                        : "Accept Order"}
+                    </button>
+                  )}
                 <button
                   onClick={() => setSelectedItem(null)}
-                  className="mt-6 w-full px-4 py-3 rounded-xl bg-gradient-to-r from-gray-800 to-gray-900 text-white font-medium hover:from-gray-900 hover:to-black transition-all shadow-lg"
+                  className="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-gray-800 to-gray-900 text-white font-medium hover:from-gray-900 hover:to-black transition-all shadow-lg"
                 >
                   Close
                 </button>
