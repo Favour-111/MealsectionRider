@@ -8,6 +8,8 @@ import Login from "./Pages/Login/Login";
 import SignUp from "./Pages/SignUp/SignUp";
 import Orders from "./Pages/Orders/Orders";
 import History from "./Pages/History/History";
+import ForgotPassword from "./Pages/ForgotPassword";
+import ResetPassword from "./Pages/ResetPassword";
 import { Toaster } from "react-hot-toast";
 import toast from "react-hot-toast";
 import { messaging, onMessage } from "./config/firebase";
@@ -79,9 +81,10 @@ function App() {
           <Route path="/" element={<Login />} />
         )}
         <Route path="/sign-up" element={<SignUp />} />
-
         <Route path="/order" element={<Orders />} />
         <Route path="/history" element={<History />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
       </Routes>
       <Toaster />
     </>

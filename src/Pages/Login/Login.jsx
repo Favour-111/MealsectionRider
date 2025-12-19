@@ -89,6 +89,11 @@ const Login = () => {
         return;
       }
 
+      // Check approval status
+      if (data?.rider?.valid !== true) {
+        toast.error("Please wait, we are validating your account.");
+      }
+
       // ✅ Login success
       localStorage.setItem("token", data?.token);
       localStorage.setItem("riderId", data.rider?.id);

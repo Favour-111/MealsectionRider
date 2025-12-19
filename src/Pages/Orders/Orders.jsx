@@ -52,7 +52,7 @@ const Orders = () => {
       if (response && response.data.orders) {
         console.log(response.data.orders);
 
-        setAllOrders(response.data.orders);
+        setAllOrders(response?.data.orders);
       } else {
         toast.error("Error fetching orders");
       }
@@ -833,7 +833,11 @@ const Orders = () => {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-100">
                     {filteredOrders
-                      .filter((item) => item.currentStatus === "Delivered"  && item.rider === riderId)
+                      .filter(
+                        (item) =>
+                          item.currentStatus === "Delivered" &&
+                          item.rider === riderId
+                      )
                       .reverse()
                       .map((item) => (
                         <tr

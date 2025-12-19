@@ -18,6 +18,7 @@ const SignUp = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showValidationModal, setShowValidationModal] = useState(false);
 
   const handleInput = (e) => {
     const { name, value } = e.target;
@@ -51,14 +52,8 @@ const SignUp = () => {
         }
       );
 
-      const newRider = res?.data?.newRider;
-      if (newRider?._id) {
-        localStorage.setItem("riderId", newRider._id);
-      }
-
       toast.success("Signup successful!");
-      navigate("/");
-      setTimeout(() => window.location.reload(), 150);
+      setShowValidationModal(true);
     } catch (err) {
       console.error(err);
       const msg = err.response?.data?.message || "Signup failed";
@@ -89,6 +84,58 @@ const SignUp = () => {
   }, []);
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-red-50/30 to-orange-50/30 flex flex-col font-sans relative overflow-hidden">
+      {/* Validation Modal */}
+      {showValidationModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-10 border border-gray-100 max-w-md w-full flex flex-col items-center animate-fadeInUp">
+            <div className="flex flex-col items-center mb-6">
+              <svg
+                className="w-16 h-16 text-yellow-400 mb-2"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  fill="#FEF3C7"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 8v4m0 4h.01"
+                  stroke="#F59E42"
+                />
+              </svg>
+              <h2 className="text-2xl font-bold text-gray-800 mb-1 text-center">
+                Account Under Review
+              </h2>
+              <p className="text-gray-600 text-center max-w-xs">
+                Thank you for signing up! Your account is being validated by our
+                team. Please come back in{" "}
+                <span className="font-semibold text-yellow-700">
+                  1-24 hours
+                </span>{" "}
+                to check your approval status.
+              </p>
+            </div>
+            <button
+              className="mt-4 px-6 py-3 rounded-xl bg-[var(--default)] text-white font-semibold shadow hover:opacity-90 transition-all text-base"
+              onClick={() => {
+                setShowValidationModal(false);
+                navigate("/");
+              }}
+            >
+              Back to Login
+            </button>
+          </div>
+        </div>
+      )}
       <div className="relative z-10 flex flex-col lg:flex-row min-h-screen">
         {/* Right - Form */}
         <div className="w-full flex items-center justify-center p-6 lg:p-12">
