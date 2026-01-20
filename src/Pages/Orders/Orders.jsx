@@ -31,7 +31,7 @@ const Orders = () => {
   const fetchUsers = async () => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_REACT_APP_API}/api/riders/allRiders`
+        `${import.meta.env.VITE_REACT_APP_API}/api/riders/allRiders`,
       );
       if (response) {
         setAllRiders(response.data);
@@ -46,7 +46,7 @@ const Orders = () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `${import.meta.env.VITE_REACT_APP_API}/api/users/orders`
+        `${import.meta.env.VITE_REACT_APP_API}/api/users/orders`,
       );
 
       if (response && response.data.orders) {
@@ -70,14 +70,16 @@ const Orders = () => {
         `${
           import.meta.env.VITE_REACT_APP_API
         }/api/users/orders/${orderId}/updateStatus`,
-        { currentStatus: newStatus }
+        { currentStatus: newStatus },
       );
 
       // Optimistically update the frontend without re-fetching
       setAllOrders((prev) =>
         prev.map((order) =>
-          order._id === orderId ? { ...order, currentStatus: newStatus } : order
-        )
+          order._id === orderId
+            ? { ...order, currentStatus: newStatus }
+            : order,
+        ),
       );
 
       if (newStatus === "Delivered") {
@@ -145,7 +147,7 @@ const Orders = () => {
   // Counts for summary cards (not affected by search)
   const baseOrders = useMemo(
     () => allOrder.filter((order) => order.university === university),
-    [allOrder, university]
+    [allOrder, university],
   );
   const newOrdersCount = useMemo(
     () =>
@@ -153,23 +155,23 @@ const Orders = () => {
         (item) =>
           item.currentStatus === "Pending" &&
           item.rider === "Not assigned" &&
-          item.packs.some((pack) => pack.accepted === null)
+          item.packs.some((pack) => pack.accepted === null),
       ).length,
-    [baseOrders]
+    [baseOrders],
   );
   const ongoingCount = useMemo(
     () =>
       baseOrders.filter(
-        (item) => item.currentStatus !== "Delivered" && item.rider === riderId
+        (item) => item.currentStatus !== "Delivered" && item.rider === riderId,
       ).length,
-    [baseOrders, riderId]
+    [baseOrders, riderId],
   );
   const completedCount = useMemo(
     () =>
       baseOrders.filter(
-        (item) => item.currentStatus === "Delivered" && item.rider === riderId
+        (item) => item.currentStatus === "Delivered" && item.rider === riderId,
       ).length,
-    [baseOrders, riderId]
+    [baseOrders, riderId],
   );
 
   console.log(filteredOrders);
@@ -181,7 +183,7 @@ const Orders = () => {
         `${
           import.meta.env.VITE_REACT_APP_API
         }/api/users/orders/${orderId}/assign-rider`,
-        { rider: riderName }
+        { rider: riderName },
       );
       setAssignedOrderId(orderId.slice(0, 8));
       setShowSuccessModal(true);
@@ -367,7 +369,7 @@ const Orders = () => {
                   (item) =>
                     item.currentStatus === "Pending" &&
                     item.rider === "Not assigned" &&
-                    item.packs.every((pack) => pack.accepted !== null)
+                    item.packs.every((pack) => pack.accepted !== null),
                 ).length === 0 ? (
                 <div className="text-center py-16 bg-white">
                   <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-50 rounded-full mb-4">
@@ -406,7 +408,7 @@ const Orders = () => {
                       .filter(
                         (item) =>
                           item.currentStatus === "Pending" &&
-                          item.rider === "Not assigned"
+                          item.rider === "Not assigned",
                       )
                       .reverse()
                       .slice(0, 6)
@@ -443,7 +445,7 @@ const Orders = () => {
                                     year: "numeric",
                                     hour: "2-digit",
                                     minute: "2-digit",
-                                  }
+                                  },
                                 )
                               : "N/A"}
                           </td>
@@ -459,11 +461,11 @@ const Orders = () => {
                                 <button
                                   onClick={() => {
                                     const allReviewed = item.packs.every(
-                                      (pack) => pack.accepted !== null
+                                      (pack) => pack.accepted !== null,
                                     );
                                     if (!allReviewed) {
                                       toast.error(
-                                        "You cannot accept this order yet. Some packs are still awaiting approval."
+                                        "You cannot accept this order yet. Some packs are still awaiting approval.",
                                       );
                                       return;
                                     }
@@ -569,7 +571,8 @@ const Orders = () => {
                 </table>
               ) : filteredOrders.filter(
                   (item) =>
-                    item.currentStatus !== "Delivered" && item.rider === riderId
+                    item.currentStatus !== "Delivered" &&
+                    item.rider === riderId,
                 ).length === 0 ? (
                 <div className="text-center py-16 bg-white">
                   <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-50 rounded-full mb-4">
@@ -611,7 +614,7 @@ const Orders = () => {
                       .filter(
                         (item) =>
                           item.currentStatus !== "Delivered" &&
-                          item.rider === riderId
+                          item.rider === riderId,
                       )
                       .slice()
                       .reverse()
@@ -648,7 +651,7 @@ const Orders = () => {
                                     year: "numeric",
                                     hour: "2-digit",
                                     minute: "2-digit",
-                                  }
+                                  },
                                 )
                               : "N/A"}
                           </td>
@@ -800,7 +803,8 @@ const Orders = () => {
                 </table>
               ) : filteredOrders.filter(
                   (item) =>
-                    item.currentStatus === "Delivered" && item.rider === riderId
+                    item.currentStatus === "Delivered" &&
+                    item.rider === riderId,
                 ).length === 0 ? (
                 <div className="text-center py-16 bg-white">
                   <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-50 rounded-full mb-4">
@@ -836,7 +840,7 @@ const Orders = () => {
                       .filter(
                         (item) =>
                           item.currentStatus === "Delivered" &&
-                          item.rider === riderId
+                          item.rider === riderId,
                       )
                       .reverse()
                       .map((item) => (
@@ -863,7 +867,7 @@ const Orders = () => {
                                     day: "numeric",
                                     month: "short",
                                     year: "numeric",
-                                  }
+                                  },
                                 )
                               : "N/A"}
                           </td>
@@ -1083,14 +1087,20 @@ const Orders = () => {
                 {/* Accept Order button, only show if order is eligible */}
                 {selectedItem?.rider === "Not assigned" &&
                   selectedItem?.packs?.every(
-                    (pack) => pack.accepted !== false
-                  ) &&
-                  selectedItem?.packs?.some(
-                    (pack) => pack.accepted === null
+                    (pack) => pack.accepted !== null,
                   ) && (
                     <button
                       onClick={() => {
-                        // Accept order logic
+                        // Validate again before accepting
+                        const allReviewed = selectedItem.packs.every(
+                          (pack) => pack.accepted !== null,
+                        );
+                        if (!allReviewed) {
+                          toast.error(
+                            "You cannot accept this order yet. Some packs are still awaiting approval.",
+                          );
+                          return;
+                        }
                         assignRider(selectedItem._id, findRider?._id);
                         setSelectedItem(null);
                       }}
