@@ -7,6 +7,7 @@ import { MdClose } from "react-icons/md";
 import toast from "react-hot-toast";
 import { CiMoneyCheck1 } from "react-icons/ci";
 import { FiSearch, FiDownload } from "react-icons/fi";
+import { FaUniversity, FaUserAlt, FaCreditCard } from "react-icons/fa";
 import "../Orders/Orders.css";
 
 const History = () => {
@@ -17,13 +18,17 @@ const History = () => {
   const [loading, setLoading] = useState(false);
   const [addLoading, setaddLoading] = useState(false);
   const [allRider, setAllRiders] = useState([]);
+  const [accountName, setAccountName] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [bank, setBank] = useState("");
+  const [savingAccount, setSavingAccount] = useState(false);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const riderId = localStorage.getItem("riderId");
   const fetchUsers = async () => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_REACT_APP_API}/api/riders/allRiders`
+        `${import.meta.env.VITE_REACT_APP_API}/api/riders/allRiders`,
       );
       if (response) {
         setAllRiders(response.data);
@@ -35,9 +40,17 @@ const History = () => {
     }
   };
   console.log(withdrawals);
-  
 
   const findRider = allRider?.find((item) => item._id === riderId);
+
+  useEffect(() => {
+    if (findRider) {
+      setAccountName(findRider.accountName || "");
+      setAccountNumber(findRider.accountNumber || "");
+      setBank(findRider.bank || "");
+    }
+  }, [findRider]);
+
   // Fetch all withdrawals on mount
   useEffect(() => {
     fetchUsers();
@@ -49,7 +62,7 @@ const History = () => {
     try {
       setLoading(true);
       const { data } = await axios.get(
-        `${import.meta.env.VITE_REACT_APP_API}/api/riders/withdraw`
+        `${import.meta.env.VITE_REACT_APP_API}/api/riders/withdraw`,
       );
       setWithdrawals(data);
       setLoading(false);
@@ -62,30 +75,72 @@ const History = () => {
   const handleWithdraw = async () => {
     if (!amount) {
       return toast.error("Enter an amount");
-    } else if (findRider?.availableBal < amount) {
-      toast.error("insufficient Funds");
-    } else {
-      try {
-        setaddLoading(true);
-        const { data } = await axios.post(
-          `${import.meta.env.VITE_REACT_APP_API}/api/riders/withdraw`,
-          {
-            riderId: findRider?._id, // replace with actual rider id from auth context
-            riderName: findRider?.userName, // replace with actual rider name
-            amount: Number(amount),
-          }
-        );
-        setWithdrawals([data, ...withdrawals]);
-        setModal(false);
-        setAmount("");
-        fetchWithdrawals();
-        fetchUsers();
-      } catch (err) {
-        console.error(err);
-        alert("Error creating withdrawal");
-      } finally {
-        setaddLoading(false);
-      }
+    }
+
+    if (
+      !findRider?.accountName ||
+      !findRider?.accountNumber ||
+      !findRider?.bank
+    ) {
+      return toast.error(
+        "Please add or update your bank account details before requesting withdrawal",
+      );
+    }
+
+    if (findRider?.availableBal < amount) {
+      return toast.error("Insufficient funds");
+    }
+
+    try {
+      setaddLoading(true);
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_REACT_APP_API}/api/riders/withdraw`,
+        {
+          riderId: findRider?._id,
+          riderName: findRider?.userName,
+          amount: Number(amount),
+        },
+      );
+      setWithdrawals([data, ...withdrawals]);
+      setModal(false);
+      setAmount("");
+      fetchWithdrawals();
+      fetchUsers();
+      toast.success("Withdrawal request submitted");
+    } catch (err) {
+      console.error(err);
+      const message =
+        err.response?.data?.message || "Error creating withdrawal";
+      toast.error(message);
+    } finally {
+      setaddLoading(false);
+    }
+  };
+
+  const saveAccountDetails = async () => {
+    if (!accountName || !accountNumber || !bank) {
+      return toast.error("Please fill account name, number, and bank");
+    }
+
+    setSavingAccount(true);
+    try {
+      const { data } = await axios.patch(
+        `${import.meta.env.VITE_REACT_APP_API}/api/riders/${riderId}/account`,
+        {
+          accountName,
+          accountNumber,
+          bank,
+        },
+      );
+      fetchUsers();
+      toast.success("Bank details saved successfully");
+    } catch (err) {
+      console.error(err);
+      const message =
+        err.response?.data?.message || "Failed to save account details";
+      toast.error(message);
+    } finally {
+      setSavingAccount(false);
     }
   };
 
@@ -98,8 +153,8 @@ const History = () => {
           w.status === true
             ? "Completed"
             : w.status === false
-            ? "Rejected"
-            : "Pending";
+              ? "Rejected"
+              : "Pending";
         const matchStatus =
           statusFilter === "All" || statusLabel === statusFilter;
         if (!q) return matchStatus;
@@ -135,8 +190,8 @@ const History = () => {
         w.status === true
           ? "Completed"
           : w.status === false
-          ? "Rejected"
-          : "Pending",
+            ? "Rejected"
+            : "Pending",
       ]),
     ];
     const csvContent = rows.map((r) => r.join(",")).join("\n");
@@ -318,15 +373,15 @@ const History = () => {
                               w.status === true
                                 ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                                 : w.status === false
-                                ? "bg-red-50 text-red-700 border-red-200"
-                                : "bg-amber-50 text-amber-700 border-amber-200"
+                                  ? "bg-red-50 text-red-700 border-red-200"
+                                  : "bg-amber-50 text-amber-700 border-amber-200"
                             }`}
                           >
                             {w.status === true
                               ? "✓ Completed"
                               : w.status === false
-                              ? "✕ Rejected"
-                              : "⏳ Pending"}
+                                ? "✕ Rejected"
+                                : "⏳ Pending"}
                           </span>
                         </td>
                       </tr>
@@ -359,8 +414,8 @@ const History = () => {
 
           {/* Withdraw modal */}
           {modal && (
-            <div className="fixed inset-0 z-[10000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-              <div className="relative bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl animate-slideUp">
+            <div className="fixed inset-0 z-[10000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+              <div className="relative bg-white rounded-2xl w-full max-w-md max-h-[90vh] p-6 shadow-2xl animate-slideUp overflow-y-auto">
                 <button
                   onClick={() => setModal(false)}
                   className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-xl transition-colors group"
@@ -384,25 +439,98 @@ const History = () => {
                   </p>
                 </div>
 
-                <div className="mb-6">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Withdrawal Amount
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">
-                      ₦
-                    </span>
-                    <input
-                      type="number"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      placeholder="0.00"
-                      className="w-full pl-10 pr-4 py-3 text-lg font-semibold border-2 border-gray-200 rounded-xl outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all"
-                    />
+                <div className="mb-6 space-y-4">
+                  <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
+                    <div className="flex items-center gap-2 text-sm text-purple-700 mb-2">
+                      <FaCreditCard className="text-purple-500" />
+                      <span className="font-semibold">
+                        Bank Account Details
+                      </span>
+                    </div>
+                    <p className="text-xs text-purple-500 mb-3">
+                      Save your account details once. You can edit them anytime.
+                    </p>
+
+                    <div className="grid grid-cols-1 gap-3">
+                      <div className="relative">
+                        <FaUserAlt className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input
+                          value={accountName}
+                          onChange={(e) => setAccountName(e.target.value)}
+                          placeholder="Account name"
+                          className="w-full pl-10 pr-4 py-3 text-sm border border-gray-200 rounded-xl outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 bg-white transition-all"
+                        />
+                      </div>
+
+                      <div className="relative">
+                        <FaCreditCard className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input
+                          value={accountNumber}
+                          onChange={(e) => setAccountNumber(e.target.value)}
+                          placeholder="Account number"
+                          type="text"
+                          className="w-full pl-10 pr-4 py-3 text-sm border border-gray-200 rounded-xl outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 bg-white transition-all"
+                        />
+                      </div>
+
+                      <div className="relative">
+                        <FaUniversity className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input
+                          value={bank}
+                          onChange={(e) => setBank(e.target.value)}
+                          placeholder="Bank"
+                          className="w-full pl-10 pr-4 py-3 text-sm border border-gray-200 rounded-xl outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 bg-white transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      disabled={savingAccount}
+                      onClick={saveAccountDetails}
+                      className={`mt-3 w-full py-2 rounded-xl font-semibold transition-all ${
+                        savingAccount
+                          ? "bg-gray-400 cursor-not-allowed text-white"
+                          : "bg-purple-600 hover:bg-purple-700 text-white"
+                      }`}
+                    >
+                      {savingAccount
+                        ? "Saving..."
+                        : "Save / Update Bank Details"}
+                    </button>
+                    {!findRider?.accountNumber &&
+                    !findRider?.accountName &&
+                    !findRider?.bank ? (
+                      <p className="mt-2 text-xs text-red-600">
+                        Bank details are required before requesting withdrawal.
+                      </p>
+                    ) : (
+                      <p className="mt-2 text-xs text-emerald-600">
+                        Current: {findRider?.accountName} |{" "}
+                        {findRider?.accountNumber} | {findRider?.bank}
+                      </p>
+                    )}
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Enter the amount you wish to withdraw
-                  </p>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Withdrawal Amount
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">
+                        ₦
+                      </span>
+                      <input
+                        type="number"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        placeholder="0.00"
+                        className="w-full pl-10 pr-4 py-3 text-lg font-semibold border-2 border-gray-200 rounded-xl outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Enter the amount you wish to withdraw
+                    </p>
+                  </div>
                 </div>
 
                 <div className="flex gap-3">
@@ -413,10 +541,18 @@ const History = () => {
                     Cancel
                   </button>
                   <button
-                    disabled={addLoading}
+                    disabled={
+                      addLoading ||
+                      !findRider?.accountName ||
+                      !findRider?.accountNumber ||
+                      !findRider?.bank
+                    }
                     onClick={handleWithdraw}
                     className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all shadow-lg ${
-                      addLoading
+                      addLoading ||
+                      !findRider?.accountName ||
+                      !findRider?.accountNumber ||
+                      !findRider?.bank
                         ? "bg-gray-400 cursor-not-allowed"
                         : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-purple-500/30 hover:shadow-xl"
                     }`}
